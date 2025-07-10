@@ -85,6 +85,8 @@ class controller:
         if data is not None:
             result = self.helper.mode(data)
             self.output_box.setText(f"Mode: {result}")
+        if data == None:
+            self.output_box.setText("No mode found or all values are unique.")
 
     def show_range(self):
         data = self.get_data_list()
@@ -114,33 +116,31 @@ class controller:
                 f"Q1: {q1}\nQ2 (Median): {q2}\nQ3: {q3}\nQ4 (Max): {q4}\nIQR: {iqr}\nLower Bound: {lowerBound}\nUpper Bound: {upperBound}\nOutliers: {outliers}"
             )
 
-    def handle_tokenize(self):
+    def handle_tokenize(self, dataset):
         self.tokenized_data = None
-        self.dataset_input.setEnabled(False)
+        dataset.setEnabled(False)  # Disable the input widget during processing
         idx = self.tokenizer_type_combo.currentIndex()
         alphaOrNum = 3 if idx == 0 else (1 if idx == 1 else 2)
         self.tokenized_type = alphaOrNum
 
         def finish_tokenize():
-            text = self.dataset_input.text().strip()
+            text = dataset.text().strip()
             if not text:
                 QMessageBox.warning(self, "Input Error", "Please enter a dataset.")
-                self.dataset_input.setEnabled(True)
+                dataset.setEnabled(True)
                 return
             try:
                 tokens = self.helper.tokenize(text, alphaOrNum)
                 self.tokenized_data = tokens
-                self.dataset_input.setText(", ".join(str(t) for t in tokens))
-            except (
-                Exception
-            ) as e:  # Handle possible tokenization errors to avoid crashing
+                dataset.setText(", ".join(str(t) for t in tokens))  # Update the correct widget
+            except Exception as e:
                 QMessageBox.warning(self, "Tokenization Error", str(e))
                 self.tokenized_data = None
-            self.dataset_input.setEnabled(True)
+            dataset.setEnabled(True)  # Re-enable the input widget
 
-        QTimer.singleShot(500, finish_tokenize)
+        QTimer.singleShot(500, finish_tokenize)  # Delay to avoid UI freeze
 
-    def save_data_output(self):
+    def save_data_output(self): #Todo: make function dynamic to save any data and output
         dataset = self.dataset_input.text().strip()
         output = self.output_box.toPlainText().strip()
         if not dataset or not output:

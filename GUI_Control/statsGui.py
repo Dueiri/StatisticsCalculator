@@ -47,23 +47,28 @@ class ExtraStatsDialog(QDialog, controller):
 
         # Tokenize button
         self.tokenize_btn = QPushButton("Tokenize")
-        self.tokenize_btn.clicked.connect(self.handle_tokenize)
+        self.tokenize_btn.clicked.connect(lambda: self.handle_tokenize(self.freq_input))
         freq_layout.addRow(self.tokenize_btn)
-
 
 
         freq_layout.addRow(QLabel("Frequency Distribution Options:"))
         self.lowest_class_limit = QSpinBox()
         self.lowest_class_limit.setRange(-100000, 100000)
         self.lowest_class_limit.setValue(0)
+
+        # Set the default value for lowest class limit
         freq_layout.addRow("Lowest Class Limit:", self.lowest_class_limit)
         self.class_width = QSpinBox()
         self.class_width.setRange(1, 100000)
         self.class_width.setValue(5)
+
+        #set the default value for class width
         freq_layout.addRow("Class Width:", self.class_width)
         self.freq_output = QTextEdit()
         self.freq_output.setReadOnly(True)
         freq_layout.addRow(self.freq_output)
+
+        # Button to show frequency table
         freq_btn = QPushButton("Show Frequency Table")
         freq_btn.clicked.connect(self.show_frequency)
         freq_layout.addRow(freq_btn)
@@ -82,6 +87,7 @@ class ExtraStatsDialog(QDialog, controller):
         stem_layout.addRow(stem_btn)
         self.stemleaf_tab.setLayout(stem_layout)
 
+        # Add tabs to the main layout
         self.tabs.addTab(self.freq_tab, "Frequency Table")
         self.tabs.addTab(self.stemleaf_tab, "Stem-and-Leaf")
 
@@ -115,7 +121,7 @@ class StatsApp(QWidget, controller):
 
         # Tokenize button
         self.tokenize_btn = QPushButton("Tokenize")
-        self.tokenize_btn.clicked.connect(self.handle_tokenize)
+        self.tokenize_btn.clicked.connect(lambda: self.handle_tokenize(self.dataset_input))
         form_layout.addRow(self.tokenize_btn)
 
         # Output box

@@ -132,6 +132,10 @@ class StatisticsHelper:
             frequency[number] = frequency.get(number, 0) + 1
         max_freq = max(frequency.values())
         modes = [num for num, freq in frequency.items() if freq == max_freq]
+        # If all numbers are unique, return None
+        if max_freq == 1:
+            return None
+        
         return modes if len(modes) > 1 else modes[0]
 
     @staticmethod
