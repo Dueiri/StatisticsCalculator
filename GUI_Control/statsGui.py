@@ -1,5 +1,5 @@
 #statsGui.py
-#handles the GUI for the statistics helper application
+#module that handles the GUI for the statistics helper application
 #Written by David Dueiri
 # 7/9/2025
 
@@ -19,10 +19,89 @@ from PyQt6.QtWidgets import (
 )
 from GUI_Control.controller import controller
 
-class ExtraStatsDialog(QDialog, controller):
-    def __init__(self, helper, parent=None):
+class AdvancedStatsDialog(QDialog, controller):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.helper = helper
+        self.setWindowTitle("Advanced Statistics")
+        self.resize(500, 400)
+
+        # create the main layout and tabs
+        layout = QVBoxLayout()
+        self.tabs = QTabWidget()
+        self.quartiles_tab = QWidget()
+        self.zscore_tab = QWidget()
+    
+        # Quartiles Tab
+        quartiles_layout = QFormLayout()
+        self.quartiles_input = QLineEdit()
+        self.quartiles_input.setPlaceholderText("Enter numbers separated by commas")
+        quartiles_layout.addRow("Dataset:", self.quartiles_input)
+        
+        # Tokenizer type dropdown for quartiles
+        self.quartiles_tokenizer_combo = QComboBox()
+        self.quartiles_tokenizer_combo.addItems(
+            ["Both (Default)", "Alphabetical Data", "Numerical Data"]
+        )
+        quartiles_layout.addRow("Tokenization Type:", self.quartiles_tokenizer_combo)
+
+        # Tokenize button for quartiles
+        self.quartiles_tokenize_btn = QPushButton("Tokenize")
+        self.quartiles_tokenize_btn.clicked.connect(lambda: self.handle_tokenize(self.quartiles_input))
+        quartiles_layout.addRow(self.quartiles_tokenize_btn)
+        
+        self.quartiles_output = QTextEdit()
+        self.quartiles_output.setReadOnly(True)
+        quartiles_layout.addRow(self.quartiles_output)
+        
+        # Button to calculate quartiles
+        quartiles_btn = QPushButton("Calculate Quartiles")
+        quartiles_btn.clicked.connect(self.show_quartiles_advanced)
+        quartiles_layout.addRow(quartiles_btn)
+        self.quartiles_tab.setLayout(quartiles_layout)
+        
+        # Z-Score Tab
+        zscore_layout = QFormLayout()
+        self.zscore_dataset_input = QLineEdit()
+        self.zscore_dataset_input.setPlaceholderText("Enter numbers separated by commas")
+        zscore_layout.addRow("Dataset:", self.zscore_dataset_input)
+        
+        # Tokenizer type dropdown for z-score
+        self.zscore_tokenizer_combo = QComboBox()
+        self.zscore_tokenizer_combo.addItems(
+            ["Both (Default)", "Alphabetical Data", "Numerical Data"]
+        )
+        zscore_layout.addRow("Tokenization Type:", self.zscore_tokenizer_combo)
+
+        # Tokenize button for z-score
+        self.zscore_tokenize_btn = QPushButton("Tokenize")
+        self.zscore_tokenize_btn.clicked.connect(lambda: self.handle_tokenize(self.zscore_dataset_input))
+        zscore_layout.addRow(self.zscore_tokenize_btn)
+        
+        self.zscore_value_input = QLineEdit()
+        self.zscore_value_input.setPlaceholderText("Enter the value to calculate z-score for")
+        zscore_layout.addRow("Value:", self.zscore_value_input)
+        
+        self.zscore_output = QTextEdit()
+        self.zscore_output.setReadOnly(True)
+        zscore_layout.addRow(self.zscore_output)
+        
+        # Button to calculate z-score
+        zscore_btn = QPushButton("Calculate Z-Score")
+        zscore_btn.clicked.connect(self.show_z_score)
+        zscore_layout.addRow(zscore_btn)
+        self.zscore_tab.setLayout(zscore_layout)
+
+        # Add tabs to the main layout
+        self.tabs.addTab(self.quartiles_tab, "Quartiles & IQR")
+        self.tabs.addTab(self.zscore_tab, "Z-Score")
+
+        layout.addWidget(self.tabs)
+        self.setLayout(layout)
+
+
+class ExtraStatsDialog(QDialog, controller):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setWindowTitle("Extra Statistics")
         self.resize(500, 400)
 
@@ -158,10 +237,10 @@ class StatsApp(QWidget, controller):
         btn_sample_std.clicked.connect(self.show_sample_std)
         num_ops_layout.addWidget(btn_sample_std)
 
-        # IQR & Outlier Operations
-        btn_quartiles = QPushButton("Quartiles & IQR")
-        btn_quartiles.clicked.connect(self.show_quartiles)
-        iqr_ops_layout.addWidget(btn_quartiles)
+        # Advanced Statistics (opens dialog)
+        advanced_stats = QPushButton("Advanced Statistics")
+        advanced_stats.clicked.connect(self.open_advanced_stats)
+        iqr_ops_layout.addWidget(advanced_stats)
 
         # Extra stats (opens dialog)
         btn_extra = QPushButton("Extra Stats (Tables, Stem-Leaf conversion)")
@@ -187,3 +266,12 @@ class StatsApp(QWidget, controller):
         self.tokenized_data = None
         self.tokenized_type = 3  # 3 = both, 1 = alpha, 2 = num
 
+
+if __name__ == "__main__":
+    import sys
+    from PyQt6.QtWidgets import QApplication
+    
+    app = QApplication(sys.argv)
+    window = StatsApp()
+    window.show()
+    sys.exit(app.exec())

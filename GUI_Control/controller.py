@@ -1,9 +1,11 @@
 #controller.py
-#Connects the GUI to the StatisticsHelper library. Uses all helper functions from statisticsHelp.py.
+#Module that connects the GUI to the StatisticsHelper library. Uses all helper functions from statisticsHelp.py.
 #Written by David Dueiri
 # 7/9/2025
 
-from User_Libraries.statisticsHelp import StatisticsHelper
+from User_Libraries.statisticsHelp import (SimpleStatisticsHelper,
+                                            advancedStatisticsHelper)
+
 
 #import necessary GUI components directly from statsGui
 from PyQt6.QtWidgets import (
@@ -15,12 +17,19 @@ from PyQt6.QtCore import Qt, QTimer
 
 class controller:
     
-    helper = StatisticsHelper()
+    helper = SimpleStatisticsHelper()
+    advHelper = advancedStatisticsHelper()
+
+
+    def open_advanced_stats(self):
+        """Open the Advanced Statistics dialog."""
+        from GUI_Control.statsGui import AdvancedStatsDialog
+        dialog = AdvancedStatsDialog(self).exec()
 
     def open_extra_stats(self):
         """Open the Extra Statistics dialog."""
         from GUI_Control.statsGui import ExtraStatsDialog
-        ExtraStatsDialog(self.helper, self).exec()
+        ExtraStatsDialog(self).exec()
 
     #run function in statisticshelp.py
     def show_frequency(self):
@@ -29,6 +38,7 @@ class controller:
             QMessageBox.warning(self, "Input Error", "Please enter a dataset.")
             return
         try:
+            # lowest_class_limit and class_width are spinboxes declared in statsGui.py
             data = self.helper.datasetToList(text)
             lowest = self.lowest_class_limit.value()
             width = self.class_width.value()
@@ -37,7 +47,7 @@ class controller:
 
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
-                self.helper.frequencyDistribution(data, lowest, width)
+                self.advHelper.frequencyDistribution(data, lowest, width)
             self.freq_output.setText(buf.getvalue())
         except Exception as e: #avoid crashing the GUI
             QMessageBox.warning(self, "Error", str(e))
@@ -50,11 +60,11 @@ class controller:
             )
             return
         try:
-            result = self.helper.stemLeafToList(text)
+            result = self.advHelper.stemLeafToList(text)
             self.stemleaf_output.setText(f"List: {result}")
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
-#todo: have datalist_input as a parameter to avoid having to rewrite the same code for each function
+
     def get_data_list(self):
         if self.tokenized_data is not None:
             return self.tokenized_data
@@ -84,9 +94,10 @@ class controller:
         data = self.get_data_list()
         if data is not None:
             result = self.helper.mode(data)
-            self.output_box.setText(f"Mode: {result}")
-        if data == None:
-            self.output_box.setText("No mode found or all values are unique.")
+            if result is None:
+                self.output_box.setText("Mode: No mode found (all values are unique)")
+            else:
+                self.output_box.setText(f"Mode: {result}")
 
     def show_range(self):
         data = self.get_data_list()
@@ -163,3 +174,41 @@ class controller:
                 )
             except Exception as e:
                 QMessageBox.warning(self, "Save Error", str(e))
+
+    def show_z_score(self):
+        """Calculate and display z-score for a value in a dataset."""
+        dataset_text = self.zscore_dataset_input.text().strip()
+        value_text = self.zscore_value_input.text().strip()
+        
+        if not dataset_text or not value_text:
+            QMessageBox.warning(self, "Input Error", "Please enter both dataset and value.")
+            return
+        
+        try:
+            data = self.helper.datasetToList(dataset_text)
+            value = float(value_text)
+            z_score = self.advHelper.zScore(data, value)
+            
+            if z_score is None:
+                self.zscore_output.setText("Cannot calculate z-score (standard deviation is 0)")
+            else:
+                self.zscore_output.setText(f"Z-Score: {z_score:.4f}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", str(e))
+
+    def show_quartiles_advanced(self):
+        """Calculate and display quartiles in the advanced stats dialog."""
+        text = self.quartiles_input.text().strip()
+        if not text:
+            QMessageBox.warning(self, "Input Error", "Please enter a dataset.")
+            return
+        try:
+            data = self.helper.datasetToList(text)
+            q1, q2, q3, q4, iqr, lowerBound, upperBound, outliers = (
+                self.advHelper.findQuartiles(data)
+            )
+            self.quartiles_output.setText(
+                f"Q1: {q1}\nQ2 (Median): {q2}\nQ3: {q3}\nQ4 (Max): {q4}\nIQR: {iqr}\nLower Bound: {lowerBound}\nUpper Bound: {upperBound}\nOutliers: {outliers}"
+            )
+        except Exception as e:
+            QMessageBox.warning(self, "Error", str(e))
