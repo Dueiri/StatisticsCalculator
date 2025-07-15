@@ -121,7 +121,7 @@ class controller:
         data = self.get_data_list()
         if data is not None:
             q1, q2, q3, q4, iqr, lowerBound, upperBound, outliers = (
-                self.helper.findQuartiles(data)
+                self.advHelper.findQuartiles(data)
             )
             self.output_box.setText(
                 f"Q1: {q1}\nQ2 (Median): {q2}\nQ3: {q3}\nQ4 (Max): {q4}\nIQR: {iqr}\nLower Bound: {lowerBound}\nUpper Bound: {upperBound}\nOutliers: {outliers}"
@@ -130,8 +130,23 @@ class controller:
     def handle_tokenize(self, dataset):
         self.tokenized_data = None
         dataset.setEnabled(False)  # Disable the input widget during processing
-        idx = self.tokenizer_type_combo.currentIndex()
-        alphaOrNum = 3 if idx == 0 else (1 if idx == 1 else 2)
+        
+        # Determine which tokenizer combo to use based on the context
+        tokenizer_combo = None
+        if hasattr(self, 'tokenizer_type_combo'):
+            tokenizer_combo = self.tokenizer_type_combo
+        elif hasattr(self, 'quartiles_tokenizer_combo') and dataset == self.quartiles_input:
+            tokenizer_combo = self.quartiles_tokenizer_combo
+        elif hasattr(self, 'zscore_tokenizer_combo') and dataset == self.zscore_dataset_input:
+            tokenizer_combo = self.zscore_tokenizer_combo
+        
+        # Default to "Both" if no combo found
+        if tokenizer_combo:
+            idx = tokenizer_combo.currentIndex()
+            alphaOrNum = 3 if idx == 0 else (1 if idx == 1 else 2)
+        else:
+            alphaOrNum = 3  # Default to "Both"
+        
         self.tokenized_type = alphaOrNum
 
         def finish_tokenize():
@@ -177,15 +192,26 @@ class controller:
 
     def show_z_score(self):
         """Calculate and display z-score for a value in a dataset."""
-        dataset_text = self.zscore_dataset_input.text().strip()
-        value_text = self.zscore_value_input.text().strip()
+        # Check if we have tokenized data, otherwise use text input
+        if hasattr(self, 'tokenized_data') and self.tokenized_data is not None:
+            data = self.tokenized_data
+        else:
+            dataset_text = self.zscore_dataset_input.text().strip()
+            if not dataset_text:
+                QMessageBox.warning(self, "Input Error", "Please enter a dataset.")
+                return
+            try:
+                data = self.helper.datasetToList(dataset_text)
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Invalid dataset: {e}")
+                return
         
-        if not dataset_text or not value_text:
-            QMessageBox.warning(self, "Input Error", "Please enter both dataset and value.")
+        value_text = self.zscore_value_input.text().strip()
+        if not value_text:
+            QMessageBox.warning(self, "Input Error", "Please enter a value.")
             return
         
         try:
-            data = self.helper.datasetToList(dataset_text)
             value = float(value_text)
             z_score = self.advHelper.zScore(data, value)
             
@@ -198,12 +224,21 @@ class controller:
 
     def show_quartiles_advanced(self):
         """Calculate and display quartiles in the advanced stats dialog."""
-        text = self.quartiles_input.text().strip()
-        if not text:
-            QMessageBox.warning(self, "Input Error", "Please enter a dataset.")
-            return
+        # Check if we have tokenized data, otherwise use text input
+        if hasattr(self, 'tokenized_data') and self.tokenized_data is not None:
+            data = self.tokenized_data
+        else:
+            text = self.quartiles_input.text().strip()
+            if not text:
+                QMessageBox.warning(self, "Input Error", "Please enter a dataset.")
+                return
+            try:
+                data = self.helper.datasetToList(text)
+            except Exception as e:
+                QMessageBox.warning(self, "Error", f"Invalid dataset: {e}")
+                return
+        
         try:
-            data = self.helper.datasetToList(text)
             q1, q2, q3, q4, iqr, lowerBound, upperBound, outliers = (
                 self.advHelper.findQuartiles(data)
             )

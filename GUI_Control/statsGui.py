@@ -3,6 +3,7 @@
 #Written by David Dueiri
 # 7/9/2025
 
+# package imports
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -17,6 +18,12 @@ from PyQt6.QtWidgets import (
     QDialog,
     QTabWidget,
 )
+
+import pyqtgraph as pg
+import numpy as np
+
+
+# Local imports
 from GUI_Control.controller import controller
 
 class AdvancedStatsDialog(QDialog, controller):
@@ -266,12 +273,3 @@ class StatsApp(QWidget, controller):
         self.tokenized_data = None
         self.tokenized_type = 3  # 3 = both, 1 = alpha, 2 = num
 
-
-if __name__ == "__main__":
-    import sys
-    from PyQt6.QtWidgets import QApplication
-    
-    app = QApplication(sys.argv)
-    window = StatsApp()
-    window.show()
-    sys.exit(app.exec())

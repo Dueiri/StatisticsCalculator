@@ -271,11 +271,3 @@ class advancedStatisticsHelper:
         for (lower, upper), f in zip(intervals, freq):
             interval_str = f"{lower:.2f} - {upper:.2f}"
             print(f"{interval_str:<25}{f:<10}")
-
-
-
-    
-    
-
-
-
