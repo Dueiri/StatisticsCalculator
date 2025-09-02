@@ -12,4 +12,4 @@ Set the tokenizer type to numerical, as the other ones dont necessarily have any
 This is only useful for copy and pasting random data sets that would otherwise be manually inputted into a ti-84 calculator. It uses a huggingface pretrained model to auto tokenize (separate) each data point in a string-based list. It struggles with negative numbers still, so I am learning how to create my own model to manage this rn
 
 
-I will vibe code the unit tests when I need something more complicated in my program
+
